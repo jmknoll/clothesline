@@ -1,0 +1,11 @@
+.toggle-checkbox:checked + .toggle-label {
+  background-color: #4caf50;
+}
+
+.toggle-checkbox:checked + .toggle-label + .home-icon {
+  opacity: 0;
+}
+
+.toggle-checkbox:checked + .toggle-label + .home-icon + .school-icon {
+  opacity: 1;
+}

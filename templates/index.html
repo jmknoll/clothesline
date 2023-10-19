@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles.css') }}"
+    />
+    <title>Worm Clothes</title>
+  </head>
+  <body class="bg-gray-100">
+    <div class="container mx-auto mt-8">
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %}
+      <ul class="flash-messages">
+        {% for category, message in messages %}
+        <li class="{{ category }}">{{ message }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %} {% endwith %}
+      <h1 class="text-4xl font-bold mb-8">Clothing Items</h1>
+      <div>
+        {% for item in items %}
+        <div class="bg-white p-4 mb-4 flex items-center">
+          <img
+            src="{{ item.image_url }}"
+            alt="{{ item.name }}"
+            class="w-20 h-20 mr-4"
+          />
+          <div class="flex-1">
+            <h2 class="text-2xl font-semibold">{{ item.name }}</h2>
+            <p>Last updated: {{ item.updated_at }}</p>
+          </div>
+
+          <!-- <div class="relative inline-block w-20 align-middle select-none">
+            <input
+              type="checkbox"
+              name="toggle"
+              id="toggle{{ item.id }}"
+              class="toggle-checkbox hidden"
+              data-id="{{ item.id }}"
+              data-location="{{ item.location }}"
+            />
+            <label
+              for="toggle{{ item.id }}"
+              class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"
+            ></label>
+            <div class="toggle-icon home-icon absolute left-1 top-1 text-white">
+              <i class="fas fa-home"></i>
+            </div>
+            <div
+              class="toggle-icon school-icon absolute right-1 top-1 text-white"
+            >
+              <i class="fas fa-school"></i>
+            </div> -->
+
+          <button
+            class="toggle-location {{ 'bg-blue-500' if item.location == 'HOME' else 'bg-purple-500' }} text-white py-2 px-4 rounded"
+            data-id="{{ item.id }}"
+            data-location="{{ item.location }}"
+          >
+            {{ item.location }}
+          </button>
+          <button
+            class="bg-red-500 text-white mx-4 py-2 px-4 rounded"
+            data-id="{{ item.id }}"
+            onclick="deleteItem(this)"
+          >
+            <i class="fas fa-trash-can"></i>
+          </button>
+        </div>
+
+        {% endfor %}
+      </div>
+      <div>
+        <a href="{{ url_for('new_clothing') }}" class="btn">Add New Item</a>
+      </div>
+    </div>
+
+    <script>
+      function deleteItem(button) {
+        id = button.dataset.id;
+        console.log("deleting item", id);
+
+        fetch(`/clothing/${id}`, {
+          method: "DELETE",
+        })
+          .then((response) => {
+            if (response.ok) {
+              console.log("Item deleted successfully");
+              window.location.reload();
+            } else {
+              console.log("Error deleting item");
+            }
+          })
+          .catch((error) => {
+            console.log("Error:", error);
+          });
+      }
+      document.addEventListener("DOMContentLoaded", function () {
+        const toggleButtons = document.querySelectorAll(".toggle-location");
+
+        toggleButtons.forEach((button) => {
+          button.addEventListener("click", function () {
+            const itemId = this.dataset.id;
+            const currentLocation = this.dataset.location;
+            const newLocation = currentLocation === "HOME" ? "SCHOOL" : "HOME";
+            const currentBg =
+              currentLocation === "HOME" ? "bg-blue-500" : "bg-purple-500";
+            const newBg =
+              currentBg === "bg-blue-500" ? "bg-purple-500" : "bg-blue-500";
+
+            // Send AJAX request to update location
+            fetch(`/clothing/${itemId}`, {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+              },
+              body: JSON.stringify({ location: newLocation }),
+            })
+              .then((response) => response.json())
+              .then((data) => {
+                if (data.success) {
+                  // Update button text and data-location attribute
+                  this.textContent = newLocation;
+                  this.dataset.location = newLocation;
+                  this.classList.remove(currentBg);
+                  this.classList.add(newBg);
+                } else {
+                  alert("Failed to update location");
+                }
+              })
+              .catch((error) => {
+                console.error("Error updating location:", error);
+              });
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

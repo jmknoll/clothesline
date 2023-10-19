@@ -1,0 +1,23 @@
+CREATE TABLE clothing_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    image_url TEXT,
+    location TEXT CHECK (location IN ('HOME', 'SCHOOL')),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TRIGGER update_timestamp
+AFTER UPDATE ON clothing_items
+FOR EACH ROW
+BEGIN
+    UPDATE clothing_items
+    SET updated_at = CURRENT_TIMESTAMP
+    WHERE id = NEW.id;
+END;
+
+
+INSERT INTO clothing_items (name, image_url, location) VALUES ('Worm Shirt', 'https://clothesline.s3.amazonaws.com/worm.jpg', 'HOME');
+INSERT INTO clothing_items (name, image_url, location) VALUES ('Greenies', 'https://clothesline.s3.amazonaws.com/greenies.webp', 'HOME');
+INSERT INTO clothing_items (name, image_url, location) VALUES ('Onesie', 'https://clothesline.s3.amazonaws.com/onesie.png', 'HOME');
+INSERT INTO clothing_items (name, image_url, location) VALUES ('Dino', 'https://clothesline.s3.amazonaws.com/dino.webp', 'HOME');
