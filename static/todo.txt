@@ -1,8 +1,0 @@
-- improve style and function of clothing item upload
-- add image upload to s3
-- set up hosting
-- Make a better confirm delete modal
-- Turn location updater into toggle
-- move javascript to alpine?
-- add image zoomer
-
