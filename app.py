@@ -3,6 +3,7 @@ import sqlite3
 import boto3
 from dotenv import load_dotenv
 import os
+import random, string
 
 DATABASE = 'clothesline.db'
 
@@ -85,6 +86,9 @@ def sign_s3():
     s3 = boto3.client('s3')
 
     bucket_name = 'clothesline'
+    
+    rando = ''.join(random.choices(string.ascii_letters + string.digits, k=16)) 
+    filename = rando + filename
 
     presigned_url = s3.generate_presigned_url(
         'put_object',

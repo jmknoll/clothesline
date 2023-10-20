@@ -2,7 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"
+    />
     <title>New Clothing Item</title>
     <link
       rel="stylesheet"
@@ -65,6 +68,8 @@
           <button
             type="submit"
             class="bg-blue-500 text-white px-4 py-2 rounded"
+            id="submitButton"
+            disabled
           >
             Create
           </button>
@@ -86,6 +91,12 @@
       const file = this.files[0];
       const imageUrlInput = document.getElementById("image_url");
 
+      // disable submit button while file is uploading
+      const submitButton = document.getElementById("submitButton");
+      submitButton.disabled = true;
+      submitButton.classList.remove("bg-blue-500");
+      submitButton.classList.add("bg-blue-200");
+
       // Convert file to data URL
       const reader = new FileReader();
       reader.onloadend = async function () {
@@ -95,6 +106,8 @@
         const response = await fetch(`/sign-s3?filename=${file.name}`);
         const data = await response.json();
         const signedUrl = data.url;
+        const bucket = data.bucket;
+        const filename = data.filename;
 
         fetch(signedUrl, {
           method: "PUT",
@@ -103,7 +116,9 @@
           .then((res) => {
             if (res.ok) {
               console.log("upload success", res);
-              const imageUrl = res.url.split("?")[0];
+
+              const imageUrl = `https://${bucket}.s3.amazonaws.com/${filename}`;
+              console.log(imageUrl);
               imageUrlInput.value = imageUrl;
             } else {
               console.log("error uploading");
@@ -111,6 +126,12 @@
           })
           .catch((err) => {
             console.log("error uploading", err);
+          })
+          .finally(() => {
+            // restore submit button
+            submitButton.disabled = false;
+            submitButton.classList.remove("bg-blue-200");
+            submitButton.classList.add("bg-blue-500");
           });
       };
       reader.readAsArrayBuffer(file);
