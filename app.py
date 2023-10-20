@@ -1,7 +1,15 @@
 from flask import Flask, g, jsonify, request, render_template, redirect, url_for, flash
 import sqlite3
+import boto3
+from dotenv import load_dotenv
+import os
 
 DATABASE = 'clothesline.db'
+
+load_dotenv()
+
+aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
+aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
 
 
 def get_db():
@@ -18,7 +26,7 @@ app.secret_key = 'fDbRbj3x1KHNmINHUj1uzg'
 def close_connection(exception):
     db = getattr(g, '_database', None)
     if db is not None:
-        db.close()
+        db.close()  
 
 @app.route('/', methods=['GET'])
 def index():
@@ -37,6 +45,7 @@ def create():
   name = request.form.get('name')
   image_url = request.form.get('image_url')
   location = request.form.get('location')
+  print(name, image_url, location)
 
   if not name or location not in ['HOME', 'SCHOOL']:
     flash('Invalid data', 'error')  # Use flash messages to display error messages
@@ -70,3 +79,17 @@ def delete(id):
   return jsonify({'success': True}), 200
   
   
+@app.route('/sign-s3', methods=['GET'])
+def sign_s3():
+    filename = request.args.get('filename')
+    s3 = boto3.client('s3')
+
+    bucket_name = 'clothesline'
+
+    presigned_url = s3.generate_presigned_url(
+        'put_object',
+        Params={'Bucket': bucket_name, 'Key': filename},
+        ExpiresIn=3600
+    )
+
+    return jsonify({'url': presigned_url, 'bucket': bucket_name, 'filename': filename})

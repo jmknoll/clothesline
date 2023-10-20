@@ -3,26 +3,116 @@
   <head>
     <meta charset="UTF-8" />
     <title>New Clothing Item</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.0.1/dist/tailwind.min.css"
+    />
   </head>
-  <body>
-    <h1>Create New Clothing Item</h1>
+  <body class="bg-gray-100">
+    <div class="container mx-auto py-8">
+      <div class="bg-white p-6 rounded-lg shadow-lg">
+        <h1 class="text-2xl font-semibold mb-4">Create New Clothing Item</h1>
 
-    <form action="/clothing" method="POST">
-      <label for="name">Name:</label>
-      <input type="text" id="name" name="name" required />
+        <form action="/clothing" method="POST" class="space-y-4">
+          <div>
+            <label for="name" class="block text-sm font-medium text-gray-600"
+              >Name:</label
+            >
+            <input
+              type="text"
+              id="name"
+              name="name"
+              required
+              class="mt-1 p-2 w-full border rounded"
+            />
+          </div>
 
-      <label for="image_url">Image URL:</label>
-      <input type="text" id="image_url" name="image_url" />
+          <div>
+            <label
+              for="image_url"
+              class="block text-sm font-medium text-gray-600"
+              >Image:
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              capture="camera"
+              id="photo"
+              name="photo"
+            />
 
-      <label for="location">Location:</label>
-      <select id="location" name="location" required>
-        <option value="HOME">Home</option>
-        <option value="SCHOOL">School</option>
-      </select>
+            <input hidden="true" type="text" id="image_url" name="image_url" />
+          </div>
 
-      <button type="submit">Create</button>
-    </form>
+          <div>
+            <label
+              for="location"
+              class="block text-sm font-medium text-gray-600"
+              >Location:</label
+            >
+            <select
+              id="location"
+              name="location"
+              required
+              class="mt-1 p-2 w-full border rounded"
+            >
+              <option value="HOME">Home</option>
+              <option value="SCHOOL">School</option>
+            </select>
+          </div>
 
-    <a href="/">Back to List</a>
+          <button
+            type="submit"
+            class="bg-blue-500 text-white px-4 py-2 rounded"
+          >
+            Create
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div class="container mx-auto py-4">
+      <a
+        href="/"
+        class="bg-blue-500 text-white text-center py-2 px-4 rounded w-full block"
+        >Back to List</a
+      >
+    </div>
   </body>
+  <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1043.0.min.js"></script>
+  <script>
+    document.getElementById("photo").addEventListener("change", function () {
+      const file = this.files[0];
+      const imageUrlInput = document.getElementById("image_url");
+
+      // Convert file to data URL
+      const reader = new FileReader();
+      reader.onloadend = async function () {
+        const buffer = reader.result;
+
+        // Get signed URL from server
+        const response = await fetch(`/sign-s3?filename=${file.name}`);
+        const data = await response.json();
+        const signedUrl = data.url;
+
+        fetch(signedUrl, {
+          method: "PUT",
+          body: buffer,
+        })
+          .then((res) => {
+            if (res.ok) {
+              console.log("upload success", res);
+              const imageUrl = res.url.split("?")[0];
+              imageUrlInput.value = imageUrl;
+            } else {
+              console.log("error uploading");
+            }
+          })
+          .catch((err) => {
+            console.log("error uploading", err);
+          });
+      };
+      reader.readAsArrayBuffer(file);
+    });
+  </script>
 </html>
